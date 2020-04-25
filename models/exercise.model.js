@@ -22,3 +22,6 @@ let exerciseSchema = mongoose.Schema({
         }
     ]
 });
+
+var Exercise = mongoose.model('Exercise', exerciseSchema, 'exercises');
+module.exports = Exercise;
