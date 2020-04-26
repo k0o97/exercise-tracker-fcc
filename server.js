@@ -8,6 +8,9 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 mongoose.connect(process.env.MLAB_URI, {useUnifiedTopology: true, useNewUrlParser: true, useCreateIndex: true});
 
+const userRoute = require('./routes/user.route');
+const exerciseRoute = require('./routes/exercise.route');
+
 app.use(cors());
 
 app.use(bodyParser.urlencoded({extended: false}));
@@ -19,6 +22,8 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
 
+app.use('/api/exercise', userRoute);
+app.use('/api/exercise', exerciseRoute);
 // Not found middleware
 app.use((req, res, next) => {
   return next({status: 404, message: 'not found'})

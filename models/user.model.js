@@ -9,6 +9,9 @@ let userSchema = mongoose.Schema({
     username: {
         'type': String,
         required: true
+    },
+    log: {
+        type: [{}]
     }
 });
 
