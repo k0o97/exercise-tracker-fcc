@@ -4,6 +4,13 @@ const mongoose = require('mongoose');
 module.exports.getUsers = async function (req, res) {
     try {
         var users = await User.find();
+        users.map(function(item) {
+            item.log.map(function(exercise) {
+              exercise.date = exercise.date.toDateString();
+              return exercise;
+            });
+            return item;
+        });
         res.json(users);    
     } 
     catch (error) {
