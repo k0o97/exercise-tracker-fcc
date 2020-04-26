@@ -31,10 +31,10 @@ module.exports.postAdd = async function (req, res) {
             res.send(err.message);
         }
         res.json({
-            _id: user._id,
             username: user.username,
             description: description,
             duration: parseInt(duration),
+            _id: user._id,
             date: date.toDateString()
 
         });
@@ -51,8 +51,13 @@ module.exports.getLog = async function (req, res) {
     }
    
     let user = await User.findOne({ _id: userId });
+    if (!user) {
+      res.send('unknown userId');
+    }
     let exercises = user.log.filter(function (exercise) {
         return exercise.date >= new Date(from) && exercise.date <= new Date(to); 
+    }).sort(function (a, b) {
+      return b.date - a.date;
     });
 
     res.json({
