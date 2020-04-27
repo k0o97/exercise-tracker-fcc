@@ -1,5 +1,4 @@
 const User = require('../models/user.model');
-const mongoose = require('mongoose');
 
 function handlerDay(str, value = 0) {
     let date = new Date(str);
@@ -17,21 +16,10 @@ module.exports.postAdd = async function (req, res, next) {
         let date = Number(req.body.date) ? Number(req.body.date) : req.body.date || 0;
        
         let user = await User.findOne({ _id: userId});
-        let userId = req.body.userId;
-        let description = req.body.description;
-        let duration = req.body.duration;
-        let date = Number(req.body.date) ? Number(req.body.date) : req.body.date || 0;
-       
-        let user = await User.findOne({ _id: userId});
         if (!user) {
             return res.send('unknown _id');
         } 
-        let exercise = {
-            description: description,
-            duration: duration,
-            date: date
-        };
-        user.log.push(exercise);
+        
         let exercise = {
             description: description,
             duration: duration,
@@ -47,34 +35,65 @@ module.exports.postAdd = async function (req, res, next) {
     
 };
 
-module.exports.getLog = async function (req, res) {
-    let userId = req.query.userId || "";
-    let from = handlerDay(req.query.from);
-    let to = handlerDay(req.query.to, '2050-01-01');
-    let limit = req.query.limit || 0;
-    if (!userId) {
-        return res.send('Unknown userId');
-    }
-   
-    let user = await User.findOne({ _id: userId });
-    if (!user) {
-      res.send('unknown userId');
-    }
-    let exercises = user.log.filter(function (exercise) {
-        return exercise.date >= new Date(from) && exercise.date <= new Date(to); 
-    }).sort(function (a, b) {
-      return b.date - a.date;
-    });
+module.exports.getLog = async function (req, res, next) {
+    const MAX_DATE = '2050-01-01';
+    const MAX_LIMIT = 1000;
 
-    res.json({
+    try {
+        let userId = req.query.userId || "";
+        let from = handlerDay(req.query.from);
+        let to = handlerDay(req.query.to, MAX_DATE);
+        let limitNumber = parseInt(req.query.limit)
+        let limit = limitNumber > 0 ? limitNumber : -limitNumber || MAX_LIMIT;
+        
+        let user = await User.findOne({ _id: userId });
+       
+        let exercises = user.log.filter(function (exercise) {
+            return exercise.date >= new Date(from) && exercise.date < new Date(to); 
+        })
+        .sort(function (a, b) {
+          return b.date - a.date;
+        })
+        .map(function (item) {
+            return {
+                description: item.description,
+                duration: item.duration,
+                date: new Date(item.date).toDateString()
+            };
+        });
+    
+        let userRes = {
             _id: user._id,
             username: user.username,
-            count: exercises.slice(-limit).length,
-            log: exercises.slice(-limit).map(function(item) {
-                item.date = item.date.toDateString();
-                return item;
-            })
-    });
-
+            count: exercises.slice(0,limit).length,
+            log: exercises.slice(0,limit)
+        }
+        
+        if (from !== 0) {
+            userRes.from = new  Date(from).toDateString();
     
+            if (to !== MAX_DATE) {
+                userRes.to = new Date(to).toDateString();
+                return res.json(userRes);
+            }
+            return res.json(userRes);
+        }
+        else if (to !== MAX_DATE) {
+            userRes.to = new Date(to).toDateString();
+            if (from !== 0) {
+                userRes.from = new Date(from).toDateString();
+                return res.json(userRes);
+            }
+            return res.json(userRes);
+        }
+        res.json({
+                _id: user._id,
+                username: user.username,
+                count: exercises.slice(0,limit).length,
+                log: exercises.slice(0,limit)
+        });    
+    } 
+    catch (error) {
+        next(error);
+    }
 };
