@@ -8,10 +8,25 @@ let userSchema = mongoose.Schema({
     },
     username: {
         'type': String,
-        required: true
+        required: true,
+        unique: true
     },
     log: {
-        type: [{}]
+        type: [{
+            description: {
+                type: String,
+                required: true
+            },
+            duration: {
+                type: Number,
+                min: 1,
+                required:true
+            },
+            date: {
+                type: Date
+            },
+            _id: false
+        }]
     }
 });
 
