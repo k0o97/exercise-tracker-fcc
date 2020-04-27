@@ -19,7 +19,7 @@ module.exports.postAdd = async function (req, res, next) {
         if (!user) {
             return res.send('unknown _id');
         } 
-        
+
         let exercise = {
             description: description,
             duration: duration,
@@ -86,12 +86,8 @@ module.exports.getLog = async function (req, res, next) {
             }
             return res.json(userRes);
         }
-        res.json({
-                _id: user._id,
-                username: user.username,
-                count: exercises.slice(0,limit).length,
-                log: exercises.slice(0,limit)
-        });    
+        
+        res.json(userRes);    
     } 
     catch (error) {
         next(error);
