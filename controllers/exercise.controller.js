@@ -9,36 +9,42 @@ function handlerDay(str, value = 0) {
     return str;
 }
 
-module.exports.postAdd = async function (req, res) {
-    let userId = req.body.userId;
-    let description = req.body.description;
-    let duration = req.body.duration;
-    let date = req.body.date;
-   
-    let user = await User.findOne({ _id: userId});
-    if (!user) {
-        return res.send('unknown _id');
-    }
-
-    let exercise = {
-        description: description,
-        duration: parseInt(duration),
-        date: date
-    };
-    user.log.push(exercise);
-    user.save(function (err, data) {
-        if (err) {
-            res.send(err.message);
-        }
-        res.json({
-            username: user.username,
+module.exports.postAdd = async function (req, res, next) {
+    try {
+        let userId = req.body.userId;
+        let description = req.body.description;
+        let duration = req.body.duration;
+        let date = Number(req.body.date) ? Number(req.body.date) : req.body.date || 0;
+       
+        let user = await User.findOne({ _id: userId});
+        let userId = req.body.userId;
+        let description = req.body.description;
+        let duration = req.body.duration;
+        let date = Number(req.body.date) ? Number(req.body.date) : req.body.date || 0;
+       
+        let user = await User.findOne({ _id: userId});
+        if (!user) {
+            return res.send('unknown _id');
+        } 
+        let exercise = {
             description: description,
-            duration: parseInt(duration),
-            _id: user._id,
-            date: date.toDateString()
-
-        });
-    });
+            duration: duration,
+            date: date
+        };
+        user.log.push(exercise);
+        let exercise = {
+            description: description,
+            duration: duration,
+            date: date
+        };
+        user.log.push(exercise);
+        let data =  await user.save();
+        res.json(data);
+    } 
+    catch (error) {
+        next(error);
+    }
+    
 };
 
 module.exports.getLog = async function (req, res) {
